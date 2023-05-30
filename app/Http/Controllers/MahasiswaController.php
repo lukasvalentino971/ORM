@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 use App\Models\Mahasiswa;
+use App\Models\Kelas;
 use Illuminate\Http\Request;
 
 class MahasiswaController extends Controller
@@ -9,11 +10,15 @@ class MahasiswaController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $mahasiswa = Mahasiswa::all(); 
-        $posts = Mahasiswa::orderBy('Nim', 'desc')->paginate(5);         
-        return view('mahasiswa.index', compact('posts'))->with('i', (request()->input('page', 1) - 1) * 5);
+        $mahasiswa = Mahasiswa::with('kelas')->orderBy('nim', 'desc');
+        if ($request->get('s')) {
+            $mahasiswa = $mahasiswa->where('nama', 'LIKE', '%'.$request->get('s').'%');
+        }
+
+        $mahasiswa = $mahasiswa->paginate(5);
+        return view('mahasiswa.index', compact('mahasiswa'))->with('i', (request()->input('page', 1) - 1) * 5);
     }
 
     /**
@@ -21,7 +26,10 @@ class MahasiswaController extends Controller
      */
     public function create()
     {
-        return view('mahasiswa.create');
+        $kelas = Kelas::all();
+        return view('mahasiswa.create', compact('kelas'));
+
+        // return view('mahasiswa.create');
     }
 
     /**
@@ -29,17 +37,27 @@ class MahasiswaController extends Controller
      */
     public function store(Request $request)
     {
-        $validateData= $request->validate([ 
+        $request->validate([ 
             'nim' => 'required', 
             'nama' => 'required', 
-            'kelas' => 'required', 
-            'jurusan' => 'required', 
-            'no_hp' => 'required', 
+            'kelas_id' => 'required', 
+            'jurusan' => 'required',
+            'no_hp' => 'required',
             'email' => 'required',
             'tgl_lahir' => 'required',
         ]); 
-//  dd($validateData);
-        Mahasiswa::create($validateData);
+        $mahasiswa = new Mahasiswa;
+        $mahasiswa->nim = $request->get('nim');
+        $mahasiswa->nama = $request->get('nama');
+        $mahasiswa->jurusan = $request->get('jurusan');
+        $mahasiswa->save();
+        
+        $kelas = new Kelas;
+        $kelas->id = $request->get('kelas');
+
+        $mahasiswa->kelas()->associate($kelas);
+        $mahasiswa->save();
+        
         return redirect()->route('mahasiswa.index')->with('success', 'Mahasiswa Berhasil Ditambahkan');     
     }
 
@@ -48,9 +66,10 @@ class MahasiswaController extends Controller
      */
     public function show($Nim)
     {
-        $Mahasiswa = Mahasiswa::find($Nim); 
-        // dd($Mahasiswa);
-        return view('mahasiswa.detail', compact('Mahasiswa'));
+
+        $mahasiswa = Mahasiswa::with('kelas')->where('nim', $Nim)->first();
+
+        return view('mahasiswa.detail', ['Mahasiswa' => $mahasiswa]);
         
     }
 
@@ -59,8 +78,9 @@ class MahasiswaController extends Controller
      */
     public function edit($Nim)
     {
-        $Mahasiswa = Mahasiswa::find($Nim); 
-        return view('mahasiswa.edit', compact('Mahasiswa'));
+        $mahasiswa = Mahasiswa::with('kelas')->where('nim', $Nim)->first();
+        $kelas = Kelas::all();
+        return view('mahasiswa.edit', compact('mahasiswa', 'kelas'));
     }
 
     /**
@@ -68,16 +88,28 @@ class MahasiswaController extends Controller
      */
     public function update(Request $request, $Nim)
     {
-        $validatedData = $request->validate([ 
+        $request->validate([ 
             'nim' => 'required', 
             'nama' => 'required', 
-            'kelas' => 'required', 
+            'kelas_id' => 'required', 
             'jurusan' => 'required', 
             'no_hp' => 'required',
             'email' => 'required',
             'tgl_lahir' => 'required',
         ]);
-        Mahasiswa::find($Nim)->update($validatedData);  
+
+        $mahasiswa = Mahasiswa::with('kelas')->where('nim', $Nim)->first();
+        $mahasiswa->nim = $request->get('nim');
+        $mahasiswa->nama = $request->get('nama');
+        $mahasiswa->jurusan = $request->get('jurusan');
+        $mahasiswa->save();
+
+        $kelas = new Kelas;
+        $kelas->id = $request->get('kelas_id');
+
+        $mahasiswa->kelas()->associate($kelas);
+        $mahasiswa->save();
+
         return redirect()->route('mahasiswa.index')->with('success', 'Mahasiswa Berhasil Diupdate');
     }
 

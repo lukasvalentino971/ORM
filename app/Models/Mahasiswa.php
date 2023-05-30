@@ -11,10 +11,22 @@ use Illuminate\Database\Eloquent\Model;
 class Mahasiswa extends Model
 {
     protected $table="mahasiswa";
-    public $timestamps= false;
+    // public $timestamps= false;
     protected  $primaryKey = 'nim'; 
+    public $timestamps = false;
 
-    protected $guarded = [] ;
+    protected $fillable = [
+        'nim',
+        'nama',
+        'jurusan',
+        'no_hp',
+        'email',
+        'tgl_lahir',
+        'kelas_id',
+    ];
 
-    use HasFactory;
+    public function kelas(){
+        return $this->belongsTo(Kelas::class);
+    }
+
 }

@@ -30,9 +30,13 @@
                         <label for="Nama">Nama</label>
                         <input type="Nama" name="nama" class="formcontrol" id="Nama" aria-describedby="Nama">
                     </div>
-                    <div class="form-group">
+                    <div class="mb-3">
                         <label for="Kelas">Kelas</label>
-                        <input type="Kelas" name="kelas" class="formcontrol" id="Kelas" aria-describedby="password">
+                        <select name="kelas_id" class="form-control">
+                            @foreach ($kelas as $k)
+                            <option value="{{ $k->id }}">{{ $k->nama_kelas }}</option>
+                            @endforeach
+                        </select>
                     </div>
                     <div class="form-group">
                         <label for="Jurusan">Jurusan</label> <input type="Jurusan" name="jurusan" class="formcontrol"
