@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 use App\Models\Mahasiswa;
 use App\Models\Kelas;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use PDF;
 
 class MahasiswaController extends Controller
 {
@@ -40,6 +42,7 @@ class MahasiswaController extends Controller
         $request->validate([ 
             'nim' => 'required', 
             'nama' => 'required', 
+            'foto' => 'mimes:jpg,png,jpeg',
             'kelas_id' => 'required', 
             'jurusan' => 'required',
             'no_hp' => 'required',
@@ -49,7 +52,12 @@ class MahasiswaController extends Controller
         $mahasiswa = new Mahasiswa;
         $mahasiswa->nim = $request->get('nim');
         $mahasiswa->nama = $request->get('nama');
-        $mahasiswa->jurusan = $request->get('jurusan');
+        $mahasiswa->foto = $nama_foto;
+        $mahasiswa->kelas_id = $request->get('kelas');
+        $mahasiswa->Jurusan = $request->get('jurusan');
+        $mahasiswa->no_hp = $request->get('no_hp');
+        $mahasiswa->email = $request->get('email');
+        $mahasiswa->tgl_lahir = $request->get('tgl_lahir');
         $mahasiswa->save();
         
         $kelas = new Kelas;
@@ -91,6 +99,7 @@ class MahasiswaController extends Controller
         $request->validate([ 
             'nim' => 'required', 
             'nama' => 'required', 
+            'foto' => 'mimes:jpg,png,jpeg',
             'kelas_id' => 'required', 
             'jurusan' => 'required', 
             'no_hp' => 'required',
@@ -98,19 +107,33 @@ class MahasiswaController extends Controller
             'tgl_lahir' => 'required',
         ]);
 
-        $mahasiswa = Mahasiswa::with('kelas')->where('nim', $Nim)->first();
-        $mahasiswa->nim = $request->get('nim');
-        $mahasiswa->nama = $request->get('nama');
-        $mahasiswa->jurusan = $request->get('jurusan');
-        $mahasiswa->save();
+        $mahasiswa = Mahasiswa::find($Nim);
 
-        $kelas = new Kelas;
-        $kelas->id = $request->get('kelas_id');
+        // $mahasiswa = Mahasiswa::with('kelas')->where('nim', $Nim)->first();
+        // $mahasiswa->nim = $request->get('nim');
+        // $mahasiswa->nama = $request->get('nama');
+        // $mahasiswa->jurusan = $request->get('jurusan');
+        // $mahasiswa->save();
 
-        $mahasiswa->kelas()->associate($kelas);
-        $mahasiswa->save();
+        if ($mahasiswa->foto && file_exists(storage_path('app/public/' . $mahasiswa->foto))) {
+            Storage::delete('public/' . $mahasiswa->foto);
+        }
+
+        $nama_foto = $request->file('foto')->store('fotoMahasiswa');
+        
+        Mahasiswa::where('Nim', $Nim)->update([
+            'nim' => $request->get('nim'),
+            'nama' => $request->get('nama'),
+            'foto' => $nama_foto,
+            'jurusan' => $request->get('jurusan'),
+            'no_hp' => $request->get('no_hp'),
+            'email' => $request->get('email'),
+            'tgl_lahir' => $request->get('tgl_lahir'),
+            'kelas_id' => $request->get('kelas'),
+        ]);
 
         return redirect()->route('mahasiswa.index')->with('success', 'Mahasiswa Berhasil Diupdate');
+        
     }
 
     /**
@@ -121,4 +144,25 @@ class MahasiswaController extends Controller
         Mahasiswa::find($Nim)->delete(); 
         return redirect()->route('mahasiswa.index')-> with('success', 'Mahasiswa Berhasil Dihapus'); 
     }
+
+    public function khs(Mahasiswa $mahasiswa)
+    {
+        $matkul = $mahasiswa->mataKuliah;
+
+        return view('mahasiswa.khs', [
+            'mahasiswa' => $mahasiswa,
+            'matkuls' => $matkul
+        ]);
+    }
+
+    public function cetak_khs(Mahasiswa $mahasiswa)
+    {
+        $matkuls = $mahasiswa->matakuliah;
+        $pdf = PDF::loadview('mahasiswa.cetak_khs', [
+            'matkuls' => $matkuls,
+            'mahasiswa' => $mahasiswa,
+        ]);
+        return $pdf->stream();
+    }
+
 }

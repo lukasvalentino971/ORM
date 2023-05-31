@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\Mahasiswa as Authenticatable;
 use Illuminate\Notifications\Notifiable; 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Mahasiswa extends Model
 {
@@ -27,6 +28,16 @@ class Mahasiswa extends Model
 
     public function kelas(){
         return $this->belongsTo(Kelas::class);
+    }
+
+    public function matakuliah(): BelongsToMany
+    {
+        return $this->belongsToMany(Matakuliah::class, 'mahasiswa_matakuliah', 'mahasiswa_nim', 'matakuliah_id')->withPivot('nilai');
+    }
+
+    public function getRouteKeyName()
+    {
+        return 'Nim';
     }
 
 }

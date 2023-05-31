@@ -30,6 +30,11 @@
                         <label for="Nama">Nama</label>
                         <input type="Nama" name="nama" class="formcontrol" id="Nama" aria-describedby="Nama">
                     </div>
+                    <div class="form-group">
+                        <label for="foto">Foto</label>
+                        <input type="file" name="foto" class="form-control" id="foto" aria-describedby="foto"
+                            accept="image/*">
+                    </div>
                     <div class="mb-3">
                         <label for="Kelas">Kelas</label>
                         <select name="kelas_id" class="form-control">

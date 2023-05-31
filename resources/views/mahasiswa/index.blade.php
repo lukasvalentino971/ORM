@@ -26,18 +26,21 @@
     <tr>
         <th>Nim</th>
         <th>Nama</th>
+        <th>Foto</th>
         <th>Kelas</th>
         <th>Jurusan</th>
         <th>No_Handphone</th>
         <th>Email</th>
         <th>Tanggal Lahir</th>
-        <th width="280px">Action</th>
+        <th width="380px">Action</th>
     </tr>
     @foreach ($mahasiswa as $Mahasiswa)
     <tr>
 
         <td>{{ $Mahasiswa->nim }}</td>
         <td>{{ $Mahasiswa->nama }}</td>
+        <td><img width="100px" height="100px" src="{{ asset('storage/' . $Mahasiswa->foto) }}"
+            style="object-fit: cover"></td>
         <td>{{ $Mahasiswa->kelas->nama_kelas ?? '-' }}</td>
         <td>{{ $Mahasiswa->jurusan }}</td>
         <td>{{ $Mahasiswa->no_hp }}</td>
@@ -50,6 +53,7 @@
                 <a class="btn btn-primary" href="{{ route('mahasiswa.edit',$Mahasiswa->nim) }}">Edit</a>
                 @csrf @method('DELETE')
                 <button type="submit" class="btn btn-danger">Delete</button>
+                <a class="btn btn-warning" href="{{ route('mahasiswa.cetak_khs', $Mahasiswa->nim) }}">Nilai</a>
             </form>
         </td>
     </tr>
